@@ -15,21 +15,47 @@ export interface ViolinButtonProps {
 }
 
 export function ViolinButton({ note, mainString, position, isOpenString, color }: ViolinButtonProps) {
+  
+  
   const [isPressed, setIsPressed] = useState(false)
   const touchStartY = useRef<number | null>(null)
   const buttonRef = useRef<HTMLButtonElement>(null)
   const audioRef = useRef<HTMLAudioElement | null>(null)
-  
+
+
+
+
+  let touchStartTime = Date.now();
+  let touchDurTime = 0;
+
+
+
+
+
+
   const handleTouchStart = useCallback((e: React.TouchEvent | React.MouseEvent) => {
+    touchStartTime = Date.now();
+
     setIsPressed(true)
     if ('touches' in e) {
       touchStartY.current = e.touches[0].clientY
     } else {
       touchStartY.current = e.clientY
     }
-    audioRef.current = playAudio(mainString, note, 'pluck')
-    console.log(`Button ${note} at position ${position.row},${position.col} was tapped`)
+
+    // if (touchDurTime < 500) {
+    //   audioRef.current = playAudio(mainString, note, 'pluck');
+    // }
+    console.log("-----------------start   " + touchDurTime);
+
+    console.log(`String ${mainString} Button ${note} at position ${position.row},${position.col} was tapped`)
   }, [note, position, mainString])
+
+
+
+
+
+
 
   const handleTouchMove = useCallback((e: React.TouchEvent | React.MouseEvent) => {
     if (!isPressed || touchStartY.current === null) return
@@ -42,31 +68,74 @@ export function ViolinButton({ note, mainString, position, isOpenString, color }
         stopAudio(audioRef.current)
       }
       audioRef.current = playAudio(mainString, note, 'vibrato')
-      console.log(`Button ${note} at position ${position.row},${position.col} was dragged up`)
+      console.log(`String ${mainString} Button ${note} at position ${position.row},${position.col} was dragged up`)
       touchStartY.current = null // Reset to prevent multiple triggers
     }
   }, [isPressed, note, position, mainString])
 
-  const handleTouchEnd = useCallback(() => {
+
+
+
+
+  
+
+
+
+  const handleTouchEnd = useCallback(() => {   
+    touchDurTime = Date.now() - touchStartTime;
+    console.log("-----------------end   " + touchDurTime);
+
+
     if (isPressed) {
-      console.log(`Button ${note} at position ${position.row},${position.col} was released`)
+      console.log(`String ${mainString} Button ${note} at position ${position.row},${position.col} was released`)
       if (audioRef.current) {
         stopAudio(audioRef.current)
       }
     }
+
+
     setIsPressed(false)
     touchStartY.current = null
   }, [isPressed, note, position])
 
+
+
+
+
+
+
   useEffect(() => {
+
+    if (isPressed && touchDurTime < 1000) {
+      let pluckTimeout: NodeJS.Timeout;
+      pluckTimeout = setTimeout(() => {
+        if (audioRef.current) {
+          stopAudio(audioRef.current)
+        }
+
+        audioRef.current = playAudio(mainString, note, 'pluck');
+
+      }, 100) 
+    }
+
+
+
+
+    
     let sustainTimeout: NodeJS.Timeout;
     if (isPressed) {
       sustainTimeout = setTimeout(() => {
         if (audioRef.current) {
           stopAudio(audioRef.current)
         }
-        audioRef.current = playAudio(mainString, note, 'sustain')
-      }, 200) // Start sustain after 200ms of being pressed
+
+        // console.log("----------------fx   " + touchDurTime);
+        // if (touchDurTime > 500)
+        // {
+          audioRef.current = playAudio(mainString, note, 'sustain');
+        // }
+
+      }, 100) // Start sustain after 200ms of being pressed
     }
     return () => {
       clearTimeout(sustainTimeout)
@@ -76,9 +145,18 @@ export function ViolinButton({ note, mainString, position, isOpenString, color }
     }
   }, [isPressed, note, mainString])
 
+
+
+
+
   const buttonStyle = {
     backgroundColor: isPressed ? `${color}cc` : color,
   }
+
+
+
+
+
 
   return (
     <button
@@ -101,4 +179,5 @@ export function ViolinButton({ note, mainString, position, isOpenString, color }
     </button>
   )
 }
+
 
