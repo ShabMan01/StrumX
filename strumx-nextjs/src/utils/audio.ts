@@ -1,3 +1,11 @@
+declare global {
+    interface Window {
+        FADE_DURATION: number;
+    }
+}
+
+window.FADE_DURATION = 100; // Default value
+
 const audioCache: { [key: string]: HTMLAudioElement } = {};
 const FADE_DURATION = 100; // 100ms fade out
 
@@ -72,7 +80,7 @@ export function stopAudio(audio: HTMLAudioElement) {
             const fadeOut = () => {
                 const currentTime = performance.now();
                 const elapsed = currentTime - startTime;
-                const percentage = elapsed / FADE_DURATION;
+                const percentage = elapsed / window.FADE_DURATION;
                 
                 if (percentage < 1) {
                     // Calculate new volume

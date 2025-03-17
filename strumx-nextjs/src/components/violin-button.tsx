@@ -1,6 +1,3 @@
-
-
-
 'use client'
 
 import { useState, useRef, useCallback } from 'react'
@@ -16,9 +13,18 @@ export interface ViolinButtonProps {
   isOpenString: boolean;
   color: string;
   soundType: 'pluck' | 'sustain' | 'vibrato';
+  showNoteName?: boolean;  // Add this line
 }
 
-export function ViolinButton({ note, mainString, position, isOpenString, color, soundType }: ViolinButtonProps) {
+export function ViolinButton({ 
+  note, 
+  mainString, 
+  position, 
+  isOpenString, 
+  color, 
+  soundType,
+  showNoteName = true  // Add default value
+}: ViolinButtonProps) {
   const [isPressed, setIsPressed] = useState(false)
   const touchStartY = useRef<number | null>(null)
   const buttonRef = useRef<HTMLButtonElement>(null)
@@ -75,6 +81,11 @@ export function ViolinButton({ note, mainString, position, isOpenString, color, 
     backgroundColor: isPressed ? `${color}cc` : color,
   }
 
+  // Add this function to format the display note
+  const formatDisplayNote = (note: string): string => {
+    return note.replace('s/', '#/');
+  };
+
   return (
     <button
       ref={buttonRef}
@@ -90,9 +101,11 @@ export function ViolinButton({ note, mainString, position, isOpenString, color, 
       onMouseUp={handleTouchEnd}
       onMouseLeave={handleTouchEnd}
     >
-      <span className="text-white font-bold text-xs sm:text-sm leading-none break-words text-center">
-        {note}
-      </span>
+      {showNoteName && (
+        <span className="text-white font-bold text-xs sm:text-sm leading-none break-words text-center">
+          {formatDisplayNote(note)}
+        </span>
+      )}
     </button>
   )
 }
